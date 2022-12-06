@@ -7,7 +7,7 @@ import Chart from 'chart.js/auto';
 class GraphPage extends Component {
     constructor(props) {
         super(props);
-        this.state = { consumptions: [], time: [], chartData: '', id: []};
+        this.state = { consumptions: [], time: [], chartData: '', id: [], overload: [],device: ''};
         this.username = this.props.match.params.username;
         this.user = JSON.parse(localStorage.getItem('user'));
         this.id = this.props.match.params.id;
@@ -17,11 +17,24 @@ class GraphPage extends Component {
 
     async componentDidMount() {
         if (this.user.username === this.username) {
+            axios.get(`http://localhost:8081/device/dev/${this.id}`,{
+                headers: { Authorization: "Bearer " + this.user.jwt }
+            }).then(response=>response.data).then(
+                (data)=>{
+                    this.setState({device: data})
+                }
+            )
+
             axios.get(`http://localhost:8081/consumption/${this.id}/${this.date}`, {
                 headers: { Authorization: "Bearer " + this.user.jwt }
             }).then(response => response.data).then(
                 (data) => {
-                    this.setState({ consumptions: data.map((d)=> parseFloat(d.value)), time: data.map((d)=> d.time) });
+                    this.setState({ consumptions: data.map((d)=> parseFloat(d.value)
+                        ), time: data.map((d)=> (d.time)), 
+                               overload: data.map((d) => (parseFloat(d.value)>parseFloat(this.state.device.hourlyConsumption))?
+                                    d.time
+                                    : null)}
+                              );
                 });
                 console.log(this.state.consumptions)
                 console.log(this.state.time)
@@ -38,7 +51,6 @@ class GraphPage extends Component {
             // alert(this.state.consumptions.length);
             // this.tableData.hour=this.state.consumptions.map((consumption) => consumption.time);
             // this.tableData.dataset.date=this.state.consumptions.map((consumption) => consumption.value);
-            // alert(this.tableData.hour.length);
         }
         else {
             this.setState({ consumptions: [] });
@@ -50,7 +62,12 @@ class GraphPage extends Component {
             headers: { Authorization: "Bearer " + this.user.jwt }
         }).then(response => response.data).then(
             (data) => {
-                this.setState({ consumptions: data.map((d)=> parseFloat(d.value)), time: data.map((d)=> d.time), id:data.map((d)=>d.id) });
+                this.setState({ consumptions: data.map((d)=> parseFloat(d.value)
+                     ), time: data.map((d)=> (d.time)), 
+                            overload: data.map((d) => (parseFloat(d.value)>parseFloat(this.state.device.hourlyConsumption))?
+                                 d.time
+                                 :null)}
+                           );
             });
         this.setState({chartData: {
             labels: this.state.time,
@@ -90,6 +107,15 @@ class GraphPage extends Component {
                                 },
                             }}
                         />
+                        </div>
+                }
+                {
+                        this.state.overload.length === 0 ?
+                        <div></div>:
+                        <div>
+                           {this.state.overload.map((overload) => (
+                                overload !== null ?
+                                <div>Consumption higher that normat at {overload}</div>:<></>))}
                         </div>
                 }
             </>
