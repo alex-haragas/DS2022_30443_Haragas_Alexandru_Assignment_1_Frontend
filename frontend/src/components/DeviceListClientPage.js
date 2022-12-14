@@ -1,12 +1,14 @@
 import React, { Component } from "react";
 import { Button, ButtonGroup, Card, Form, Table } from 'react-bootstrap';
 import axios from 'axios';
+import SockJS from 'sockjs-client';
+import {over} from 'stompjs'
 
-
+var stompClient = null;
 class DeviceListClientPage extends Component {
     constructor(props) {
         super(props);
-        this.state = { devices: [], deviceSel: '', addressSel: '', selectedDevice: '' , dateSel:'', consumptions: [] };
+        this.state = { devices: [], deviceSel: '', addressSel: '', selectedDevice: '' , dateSel:'', consumptions: [], mes:'', connected: false};
         // this.tableData ={
         //     label: [],
         //     dataset: [
@@ -22,7 +24,14 @@ class DeviceListClientPage extends Component {
    
         this.deviceChange = this.deviceChange.bind(this);
         this.selectDevice = this.selectDevice.bind(this);
-        this.getConsumtion = this.getConsumtion.bind(this);
+        // this.onMessageRec = this.registerUser.bind(this)
+        // this.onMessageRec = this.onConnected.bind(this)
+        // this.onMessageRec = this.onError.bind(this)
+        // this.onMessageRec = this.getMessageRec.bind(this)
+
+        this.registerUser();
+
+
     }
 
 
@@ -34,10 +43,12 @@ class DeviceListClientPage extends Component {
                 (data) => {
                     this.setState({ devices: data });
                 });
+            console.log("did again")
         }
         else {
             this.setState({ devices: [] });
         }
+        
     }
 
     deviceChange(event) {
@@ -53,28 +64,44 @@ class DeviceListClientPage extends Component {
         });
     }
 
-    getConsumtion(){
-        if (this.user.username === this.username) {
-            axios.get(`http://localhost:8081/consumption/${this.state.selectedDevice.id}/${this.state.dateSel}`, {
-                headers: { Authorization: "Bearer " + this.user.jwt }
-            }).then(response => response.data).then(
-                (data) => {
-                    this.setState({ consumptions: data });
-                });
-                // alert(this.state.consumptions.length);
-                // this.tableData.hour=this.state.consumptions.map((consumption) => consumption.time);
-                // this.tableData.dataset.date=this.state.consumptions.map((consumption) => consumption.value);
-                // alert(this.tableData.hour.length);
-                
-        }
-        else {
-            this.setState({ consumptions: [] });
-        }
+
+
+    getMessageRec = (payload) => {
+        console.log("Something 4")
+        let payloadData= JSON.parse(payload.body)
+       
+        alert(payloadData.mess);
+       // this.setState({ mes: payloadData });
     }
+
+    registerUser = () =>{
+        let Sock = new SockJS('http://localhost:8081/gs');
+        stompClient=over(Sock);
+        console.log("Something 1");
+        stompClient.connect({},this.onConnected,this.onError)
+
+    }
+
+    onConnected = ()=>{
+        if(this.state.connected===false){
+            console.log("Something 2");
+            stompClient.subscribe('/client/'+this.username+"/warning", this.getMessageRec)
+
+        }
+        this.setState({connected:true});
+    }
+
+    onError = (err)=>{
+        console.log("Something 3");
+        this.setState({connected:false});
+
+    }
+
 
     render() {
         return (
             <>
+                <div>{this.state.mes}</div>
                 <Card className={"border border-dark bg-dark text-white"}>
                     <Card.Header>Devices</Card.Header>
                     <Card.Body>

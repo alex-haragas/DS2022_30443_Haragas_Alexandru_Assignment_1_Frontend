@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2'
-import Chart from 'chart.js/auto';
 
 
 class GraphPage extends Component {
@@ -48,6 +47,7 @@ class GraphPage extends Component {
                     borderWidth: 0.5
                 }]
             }})
+            
             // alert(this.state.consumptions.length);
             // this.tableData.hour=this.state.consumptions.map((consumption) => consumption.time);
             // this.tableData.dataset.date=this.state.consumptions.map((consumption) => consumption.value);
