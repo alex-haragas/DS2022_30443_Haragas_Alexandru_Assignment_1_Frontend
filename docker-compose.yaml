@@ -12,6 +12,13 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 1234
 
+  rabbitmq:
+    image: rabbitmq:3.7-alpine
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - "5673:5672"
+
   backend:
     build:
       context: ./DS2022_30443_Haragas_Alexandru_Assignment_1_Backend
@@ -28,8 +35,10 @@ services:
        MYSQL_DATABASE_PORT: 3307
     depends_on:
      - mysql
+     - rabbitmq
     links:
      - mysql
+     - rabbitmq
   
   frontend:
     build:
@@ -39,12 +48,39 @@ services:
     restart: always
     ports:
      - "3001:3000"
+     - "444:443"
+    #  - "9901:9901"
+    #  - "9902:9902"
+    volumes:
+     - ./DS2022_30443_Haragas_Alexandru_Assignment_1_Frontend/frontend/ssl:/etc/nginx/ssl
     environment: 
-     - DB_API = http://backend:8081/db-api-1.0.0
+     - DB_API = http://localhost:8081/db-api-1.0.0
     depends_on:
      - backend
+    # - grpc-web-react
+    # - grpc_server
     links:
      - backend
+    # - grpc_server
+    # - grpc-web-react
+
+  # grpc_server:
+  #  build:
+  #    context: ./-DS2022_30443_Haragas_Alexandru_Assignment_3
+  #    dockerfile: ./Dockerfile
+  #  ports: # just for debugging
+  #  - "50051:50051"
+
+  # grpc-web-react:
+  #   build:
+  #     context: ./DS2022_30443_Haragas_Alexandru_Assignment_1_Frontend/frontend
+  #     dockerfile: ./Dockerfile_2
+  #   container_name: grpc-web-react
+  #   restart: always
+  #   ports:
+  #    - "9901:9901"
+  #    - "8080:8080"
+
 
 volumes:
     database-data: { }
