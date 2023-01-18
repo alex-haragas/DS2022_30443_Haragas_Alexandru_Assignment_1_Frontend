@@ -24,7 +24,7 @@ class DeviceListAdminPAge extends Component {
                 });
                 axios.get("http://localhost:8081/user/all", {
                     headers: { Authorization: "Bearer " + this.user.jwt }
-                }).then(response => response.data).then(
+                }).then(response => response.data).then( 
                     (data) => {
                         this.setState({ users: data });
                     });

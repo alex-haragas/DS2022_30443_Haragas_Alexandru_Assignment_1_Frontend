@@ -10,6 +10,7 @@ import UserListPage from './components/UserListPage';
 import DeviceListAdminPAge from './components/DeviceListAdminPage';
 import DeviceListClientPage from './components/DeviceListClientPage';
 import GraphPage from './components/GraphPage';
+import ChatApp from './components/ChapApp';
 
 function App() {
   const marginTop={marginTop:"20px"};
@@ -27,6 +28,8 @@ function App() {
                 <Route path='/admin/:username/device' exact component={DeviceListAdminPAge}/>
                 <Route path='/client/:username/' exact component={DeviceListClientPage}/>
                 <Route path='/client/:username/:id/:date' exact component={GraphPage}/>
+                <Route path='/client/:username/chat' exact component={ChatApp}/>
+                <Route path='/admin/:username/chat' exact component={ChatApp}/>
                 <Route path='*' exact component={LogIn}/>
               </Switch>
             </Col>
